@@ -10,6 +10,8 @@ if [[ ! -d jenkins-data ]]; then
     mkdir jenkins-data
     if [[ -d jenkins-backup ]]; then
         cp -r jenkins-backup/ jenkins-data/
+    else
+        cp init-config.xml jenkins-data/config.xml
     fi
 fi
 #mkdir -p jenkins-certs
