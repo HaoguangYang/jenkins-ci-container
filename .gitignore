@@ -1,0 +1,4 @@
+.ssh/
+jenkins-data/
+jenkins-workspace/
+jenkins-backup/

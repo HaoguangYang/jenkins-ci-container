@@ -1,0 +1,11 @@
+git
+gitlab-plugin
+gitlab-branch-source
+github
+blueocean
+credentials-binding
+docker-plugin
+docker-workflow
+junit
+role-strategy
+workflow-aggregator
