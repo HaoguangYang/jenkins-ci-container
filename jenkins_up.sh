@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # build or pull containers
-docker pull docker:dind
-docker build --pull -t jenkins-customized:latest -f ./Dockerfile .
+docker build --pull -t ubuntu-dind:latest -f ./dind.dockerfile .
+docker build --pull -t jenkins-customized:latest -f ./jenkins-server.dockerfile .
 # docker build --pull -t jenkins-docker-ssh-agent:latest -f ./agent.dockerfile .
 
 # fresh setup, copy the backup over
@@ -34,7 +34,7 @@ docker run \
   --volume ${HOME}/.ssh:/home/jenkins/.ssh \
   --publish 2375:2375 \
   --publish 2376:2376 \
-  docker:dind \
+  ubuntu-dind:latest \
   --storage-driver overlay2 \
   --insecure-registry docker:5000
 #--env DOCKER_TLS_CERTDIR=/certs \
