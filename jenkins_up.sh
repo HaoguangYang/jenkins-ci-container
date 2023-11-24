@@ -64,7 +64,7 @@ if [[ ! $(docker container ls -a | grep jenkins-customized-instance) ]]; then
 
     docker cp ./agent.dockerfile jenkins-docker-bridge:/home/jenkins/agent/agent.dockerfile
 
-    docker exec -t jenkins-docker-bridge /bin/sh -c "\
+    docker exec -t jenkins-docker-bridge /bin/bash -c "\
         while ( ! docker stats --no-stream &> /dev/null ); do \
             echo 'Waiting for docker host to come online...'; \
             sleep 10; \
