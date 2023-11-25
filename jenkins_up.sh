@@ -21,6 +21,30 @@ if [[ ! $(docker network ls | grep jenkins) ]]; then
     docker network create jenkins
 fi
 
+# mount hardware accelerators
+HARDWARE_EXTRA_ARGS=""
+# NVIDIA GPUs
+if [[ $(which nvidia-smi) && $(ls /dev | grep nvidia) ]]; then
+    HARDWARE_EXTRA_ARGS="${HARDWARE_EXTRA_ARGS} --gpus all --env NVIDIA_DRIVER_CAPABILITIES=graphics,video,compute,utility,display"
+fi
+if [[ -d /usr/local/cuda ]]; then
+    HARDWARE_EXTRA_ARGS="${HARDWARE_EXTRA_ARGS} -v /usr/local/cuda:/usr/local/cuda:ro"
+fi
+# AMD GPUs
+if [[ $(ls /dev | grep kfd) ]]; then
+    HARDWARE_EXTRA_ARGS="${HARDWARE_EXTRA_ARGS} --device=/dev/kfd -v /dev/kfd:/dev/kfd"
+fi
+# Xilinx FPGAs
+if [[ $(ls /dev | grep xclmgmt) ]]; then
+    for ITEM in $(ls /dev | grep xclmgmt); do
+        HARDWARE_EXTRA_ARGS="${HARDWARE_EXTRA_ARGS} --device=/dev/${ITEM} -v /dev/${ITEM}:/dev/${ITEM}"
+    done
+fi
+# AMD/Intel GPUs
+if [[ $(ls /dev/dri | grep render) ]]; then
+    HARDWARE_EXTRA_ARGS="${HARDWARE_EXTRA_ARGS} --device=/dev/dri -v /dev/dri:/dev/dri"
+fi
+
 # prep work to allow jenkins use docker command within its docker container
 docker run \
   --name jenkins-docker-bridge \
@@ -34,6 +58,7 @@ docker run \
   --volume ${HOME}/.ssh:/home/jenkins/.ssh \
   --publish 2375:2375 \
   --publish 2376:2376 \
+  ${HARDWARE_EXTRA_ARGS} \
   ubuntu-dind:latest \
   --storage-driver overlay2 \
   --insecure-registry docker:5000
@@ -62,8 +87,8 @@ if [[ ! $(docker container ls -a | grep jenkins-customized-instance) ]]; then
     #--env DOCKER_TLS_VERIFY=1 \
     #--volume $(pwd)/jenkins-certs:/certs/client:ro \
 
+    # build internal agent image and push to local registry
     docker cp ./agent.dockerfile jenkins-docker-bridge:/home/jenkins/agent/agent.dockerfile
-
     docker exec -t jenkins-docker-bridge /bin/bash -c "\
         while ( ! docker stats --no-stream &> /dev/null ); do \
             echo 'Waiting for docker host to come online...'; \
