@@ -46,6 +46,7 @@ if [[ $(ls /dev/dri | grep render) ]]; then
 fi
 
 # prep work to allow jenkins use docker command within its docker container
+# this is actually the container that will run all children buildfarm containers.
 docker run \
   --name jenkins-docker-bridge \
   --rm \
@@ -58,6 +59,7 @@ docker run \
   --volume ${HOME}/.ssh:/home/jenkins/.ssh \
   --publish 2375:2375 \
   --publish 2376:2376 \
+  --security-opt seccomp=unconfined \
   ${HARDWARE_EXTRA_ARGS} \
   ubuntu-dind:latest \
   --storage-driver overlay2 \
