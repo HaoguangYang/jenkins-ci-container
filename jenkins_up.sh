@@ -1,5 +1,7 @@
 #!/bin/bash
 
+JENKINS_WEBUI_PORT=9081
+
 # build or pull containers
 docker build --pull -t ubuntu-dind:latest -f ./dind.dockerfile .
 docker build --pull -t jenkins-customized:latest -f ./jenkins-server.dockerfile .
@@ -49,7 +51,7 @@ fi
 # this is actually the container that will run all children buildfarm containers.
 docker run \
   --name jenkins-docker-bridge \
-  --rm \
+  --restart unless-stopped \
   --detach \
   --privileged \
   --network jenkins \
@@ -57,8 +59,8 @@ docker run \
   --env DOCKER_TLS_CERTDIR="" \
   --volume $(pwd)/jenkins-workspace:/home/jenkins/agent/workspace \
   --volume ${HOME}/.ssh:/home/jenkins/.ssh \
-  --publish 2375:2375 \
-  --publish 2376:2376 \
+  --publish 127.0.0.1:2375:2375 \
+  --publish 127.0.0.1:2376:2376 \
   --security-opt seccomp=unconfined \
   ${HARDWARE_EXTRA_ARGS} \
   ubuntu-dind:latest \
@@ -73,12 +75,12 @@ if [[ ! $(docker container ls -a | grep jenkins-customized-instance) ]]; then
     # the main jenkins instance
     docker run \
       --name jenkins-customized-instance \
-      --restart=on-failure \
+      --restart unless-stopped \
       --detach \
       --network jenkins \
       --env DOCKER_HOST=tcp://docker:2375 \
       --env JENKINS_OPTS="--prefix=/jenkins" \
-      --publish 8080:8080 \
+      --publish ${JENKINS_WEBUI_PORT}:8080 \
       --publish 50000:50000 \
       --volume $(pwd)/jenkins-data:/var/jenkins_home \
       --volume $(pwd)/jenkins-workspace:/var/jenkins_home/workspace \
