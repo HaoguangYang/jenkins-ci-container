@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JENKINS_WEBUI_PORT=9081
+JENKINS_WEBUI_PORT=8080
 
 # build or pull containers
 docker build --pull -t ubuntu-dind:latest -f ./dind.dockerfile .

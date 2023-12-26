@@ -1,5 +1,4 @@
 git
-gitlab-plugin
 gitlab-branch-source
 github
 blueocean
